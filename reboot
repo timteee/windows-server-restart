@@ -1,0 +1,19 @@
+---
+- name: Restart Windows Servers
+  hosts: windows_servers
+  gather_facts: false
+  tasks:
+    - name: Check if reboot is pending
+      win_rebootcheck:
+      register: reboot_status
+      ignore_errors: true
+
+    - name: Restart the server
+      win_reboot:
+      when: reboot_status.pending_reboot
+
+    - name: Wait for server to come back online after reboot
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+      when: reboot_status.pending_reboot
